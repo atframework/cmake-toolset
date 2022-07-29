@@ -409,10 +409,12 @@ macro(FindConfigurePackage)
       endif()
 
       # prebuild commands
-      foreach(cmd ${FindConfigurePackage_PREBUILD_COMMAND})
-        execute_process(COMMAND ${cmd} WORKING_DIRECTORY ${FindConfigurePackage_BUILD_DIRECTORY}
-                                                         ${ATFRAMEWORK_CMAKE_TOOLSET_EXECUTE_PROCESS_OUTPUT_OPTIONS})
-      endforeach()
+      if(FindConfigurePackage_PREBUILD_COMMAND)
+        execute_process(
+          COMMAND ${FindConfigurePackage_PREBUILD_COMMAND}
+          WORKING_DIRECTORY ${FindConfigurePackage_BUILD_DIRECTORY}
+                            ${ATFRAMEWORK_CMAKE_TOOLSET_EXECUTE_PROCESS_OUTPUT_OPTIONS})
+      endif()
 
       # build using configure and make
       if(FindConfigurePackage_BUILD_WITH_CONFIGURE)
@@ -581,8 +583,8 @@ macro(FindConfigurePackage)
           file(REMOVE "${FindConfigurePackage_BUILD_DIRECTORY}/CMakeCache.txt")
         endif()
         execute_process(
-          COMMAND ${CMAKE_COMMAND} ${BUILD_WITH_CMAKE_PROJECT_DIR} ${FindConfigurePackage_BUILD_WITH_CMAKE_GENERATOR}
-                  ${FindConfigurePackage_CMAKE_FLAGS}
+          COMMAND "${CMAKE_COMMAND}" "${BUILD_WITH_CMAKE_PROJECT_DIR}"
+                  ${FindConfigurePackage_BUILD_WITH_CMAKE_GENERATOR} ${FindConfigurePackage_CMAKE_FLAGS}
           WORKING_DIRECTORY ${FindConfigurePackage_BUILD_DIRECTORY}
                             ${ATFRAMEWORK_CMAKE_TOOLSET_EXECUTE_PROCESS_OUTPUT_OPTIONS})
 
@@ -709,10 +711,12 @@ macro(FindConfigurePackage)
       endif()
 
       # afterbuild commands
-      foreach(cmd ${FindConfigurePackage_AFTERBUILD_COMMAND})
-        execute_process(COMMAND ${cmd} WORKING_DIRECTORY ${FindConfigurePackage_BUILD_DIRECTORY}
-                                                         ${ATFRAMEWORK_CMAKE_TOOLSET_EXECUTE_PROCESS_OUTPUT_OPTIONS})
-      endforeach()
+      if(FindConfigurePackage_AFTERBUILD_COMMAND)
+        execute_process(
+          COMMAND ${FindConfigurePackage_AFTERBUILD_COMMAND}
+          WORKING_DIRECTORY ${FindConfigurePackage_BUILD_DIRECTORY}
+                            ${ATFRAMEWORK_CMAKE_TOOLSET_EXECUTE_PROCESS_OUTPUT_OPTIONS})
+      endif()
 
       # reset vars before retry to find package
       foreach(RESET_VAR ${FindConfigurePackage_RESET_FIND_VARS})

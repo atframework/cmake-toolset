@@ -66,7 +66,7 @@ if(NOT TARGET GTest::gtest
       endif()
     endif()
     if(NOT ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_GTEST_DEFAULT_VERSION)
-      set(ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_GTEST_DEFAULT_VERSION "release-1.11.0")
+      set(ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_GTEST_DEFAULT_VERSION "release-1.12.1")
     endif()
     project_third_party_port_declare(
       gtest

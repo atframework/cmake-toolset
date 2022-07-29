@@ -354,6 +354,10 @@ macro(project_build_tools_append_cmake_host_options OUTVAR)
     list(APPEND ${OUTVAR} "-DCMAKE_MAKE_PROGRAM=${CMAKE_HOST_MAKE_PROGRAM}")
   endif()
 
+  if(PROJECT_PREBUILT_HOST_PLATFORM_NAME)
+    list(APPEND ${OUTVAR} "-DPROJECT_PREBUILT_PLATFORM_NAME=${PROJECT_PREBUILT_HOST_PLATFORM_NAME}")
+  endif()
+
   set(project_build_tools_append_cmake_host_options_VARS PROJECT_BUILD_TOOLS_CMAKE_HOST_VARS_COMMON
                                                          PROJECT_BUILD_TOOLS_CMAKE_HOST_INHERIT_VARS_COMMON)
   if(PROJECT_BUILD_TOOLS_CMAKE_HOST_PASSTHROUGH)
@@ -1015,6 +1019,8 @@ if(NOT PROJECT_BUILD_TOOLS_PATCH_PROTOBUF_SOURCES_OPTIONS_SET)
   if(MSVC)
     unset(PROJECT_BUILD_TOOLS_PATCH_PROTOBUF_SOURCES_OPTIONS CACHE)
     set(PROJECT_BUILD_TOOLS_PATCH_PROTOBUF_SOURCES_OPTIONS /wd4244 /wd4251 /wd4267 /wd4309 /wd4668 /wd4946)
+    # upb
+    list(APPEND PROJECT_BUILD_TOOLS_PATCH_PROTOBUF_SOURCES_OPTIONS /wd4090)
 
     if(MSVC_VERSION GREATER_EQUAL 1922)
       # see https://docs.microsoft.com/en-us/cpp/overview/cpp-conformance-improvements?view=vs-2019#improvements_162 for

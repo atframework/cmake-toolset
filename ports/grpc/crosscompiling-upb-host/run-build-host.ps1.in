@@ -1,0 +1,47 @@
+$PSDefaultParameterValues['*:Encoding'] = 'UTF-8'
+
+$OutputEncoding = [System.Text.UTF8Encoding]::new()
+
+$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+
+Set-Location $SCRIPT_DIR
+
+$ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_HOST_TOOL_BUILD_DIR = "@ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_HOST_TOOL_BUILD_DIR@"
+
+if (("@ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_LOW_MEMORY_MODE@".ToLower() -eq "true") -or 
+    ("@ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_LOW_MEMORY_MODE@".ToLower() -eq "yes") -or 
+    ("@ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_LOW_MEMORY_MODE@".ToLower() -eq "1") -or 
+    ("@ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_LOW_MEMORY_MODE@".ToLower() -eq "on")) {
+    $ALLOW_PARALLEL_BUILD_FLAGS = $false
+}
+else {
+    $ALLOW_PARALLEL_BUILD_FLAGS = $true
+}
+
+# build host protoc-gen-upb first
+$ENV:PATH = "$ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_HOST_TOOL_BUILD_DIR" + [IO.Path]::PathSeparator + "$ENV:PATH"
+
+if (!(Test-Path "$ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_HOST_TOOL_BUILD_DIR" )) {
+    New-Item -Path "$ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_HOST_TOOL_BUILD_DIR" -ItemType "directory" -Force
+}
+
+Set-Location "$ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_HOST_TOOL_BUILD_DIR"
+
+if (Test-Path "CMakeCache.txt") {
+    Remove-Item -Force "CMakeCache.txt"
+}
+
+if (!(Test-Path "@PROJECT_THIRD_PARTY_HOST_INSTALL_DIR@/bin/protoc-gen-upb" ) -and !(Test-Path "@PROJECT_THIRD_PARTY_HOST_INSTALL_DIR@/bin/protoc-gen-upb.exe" )) {
+    . "@ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_HOST_RESET_BUILD_ENVS_PWSH@"
+    & @ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_HOST_BUILD_FLAGS_CMD@ "-DCMAKE_INSTALL_PREFIX=@PROJECT_THIRD_PARTY_HOST_INSTALL_DIR@"
+    if ($ALLOW_PARALLEL_BUILD_FLAGS) {
+        & "@CMAKE_COMMAND@" --build . --config "@CMAKE_BUILD_TYPE@" -j
+    }
+    else {
+        & "@CMAKE_COMMAND@" --build . --config "@CMAKE_BUILD_TYPE@"
+    }
+    if ( $LastExitCode -ne 0 ) {
+        exit $LastExitCode
+    }
+    . "@ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_HOST_RESTORE_BUILD_ENVS_PWSH@"
+}

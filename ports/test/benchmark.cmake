@@ -54,7 +54,8 @@ if(NOT TARGET benchmark::benchmark AND NOT TARGET benchmark::benchmark_main)
       endif()
     endif()
 
-    project_third_party_port_declare(benchmark VERSION "v1.6.1" GIT_URL "https://github.com/google/benchmark.git")
+    # Do not use benchmark v1.7.0, which has a lot symbol exporting problems.
+    project_third_party_port_declare(benchmark VERSION "v1.6.2" GIT_URL "https://github.com/google/benchmark.git")
 
     set(ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_BENCHMARK_PATCH_FILE
         "${CMAKE_CURRENT_LIST_DIR}/benchmark-${ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_BENCHMARK_VERSION}.patch")

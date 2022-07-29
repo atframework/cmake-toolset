@@ -78,7 +78,7 @@ int main() {
       project_third_party_port_declare(
         fmtlib
         VERSION
-        "8.1.1"
+        "9.0.0"
         GIT_URL
         "https://github.com/fmtlib/fmt.git"
         BUILD_OPTIONS

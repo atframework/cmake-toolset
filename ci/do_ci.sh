@@ -225,6 +225,9 @@ elif [[ "$1" == "msvc2017.test" ]]; then
   ctest . -V -C $CI_BUILD_CONFIGURE_TYPE
 elif [[ "$1" == "android.arm64.test" ]]; then
   echo "$1"
+  if [[ -z "$ANDROID_NDK_ROOT" ]] && [[ ! -z "$ANDROID_NDK_LATEST_HOME" ]]; then
+    export ANDROID_NDK_ROOT="$ANDROID_NDK_LATEST_HOME"
+  fi
   mkdir -p test/build_jobs_dir
   cd test/build_jobs_dir
   bash ../../ci/cmake_android_wrapper.sh -r .. -a arm64-v8a -- -DATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_CRYPTO_USE_OPENSSL=YES -DATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_LOW_MEMORY_MODE=ON
@@ -232,6 +235,9 @@ elif [[ "$1" == "android.arm64.test" ]]; then
   cmake --build . -j || cmake --build .
 elif [[ "$1" == "android.x86_64.test" ]]; then
   echo "$1"
+  if [[ -z "$ANDROID_NDK_ROOT" ]] && [[ ! -z "$ANDROID_NDK_LATEST_HOME" ]]; then
+    export ANDROID_NDK_ROOT="$ANDROID_NDK_LATEST_HOME"
+  fi
   mkdir -p test/build_jobs_dir
   cd test/build_jobs_dir
   bash ../../ci/cmake_android_wrapper.sh -r .. -a x86_64 -- -DATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_CRYPTO_USE_OPENSSL=YES -DATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_LOW_MEMORY_MODE=ON

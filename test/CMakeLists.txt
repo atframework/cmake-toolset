@@ -89,8 +89,11 @@ include("${ATFRAMEWORK_CMAKE_TOOLSET_DIR}/ports/compression/import.cmake")
 if(NOT ANDROID AND NOT CMAKE_HOST_APPLE)
   include("${ATFRAMEWORK_CMAKE_TOOLSET_DIR}/ports/jemalloc/jemalloc.cmake")
   if(NOT WIN32 AND NOT MINGW)
-    # There is a BUG in gcc 4.6-4.8 and finxed in gcc 4.9 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58016
-    # https://gcc.gnu.org/gcc-4.9/changes.html
+    #[[
+    # There is a BUG in gcc 4.6-4.8 and finxed in gcc 4.9
+    #   @see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58016
+    #   @see https://gcc.gnu.org/gcc-4.9/changes.html
+    #]]
     if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "4.9")
       include("${ATFRAMEWORK_CMAKE_TOOLSET_DIR}/ports/libunwind/libunwind.cmake")
     endif()
@@ -154,6 +157,8 @@ if(VCPKG_TOOLCHAIN
   message(STATUS "Current protobuf in vcpkg is too old to support MSVC 1929(VS 16.10)")
 else()
   include("${ATFRAMEWORK_CMAKE_TOOLSET_DIR}/ports/protobuf/protobuf.cmake")
+  include("${ATFRAMEWORK_CMAKE_TOOLSET_DIR}/ports/grpc/abseil-cpp.cmake")
+  include("${ATFRAMEWORK_CMAKE_TOOLSET_DIR}/ports/grpc/upb.cmake")
   include("${ATFRAMEWORK_CMAKE_TOOLSET_DIR}/ports/grpc/import.cmake")
 
   if(COMPILER_OPTIONS_TEST_EXCEPTION)
@@ -244,4 +249,44 @@ if(TARGET benchmark::benchmark)
   add_test(NAME cmake-toolset.benchmark-test COMMAND cmake-toolset-test)
 else()
   message(FATAL_ERROR "Build benchmark failed")
+endif()
+
+if(ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_PROTOC_GEN_LUA
+   AND ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_LINK_NAME
+   AND ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_PROTOBUF_BIN_PROTOC
+   AND EXISTS "${PROJECT_THIRD_PARTY_INSTALL_DIR}/share/upb/upb/bindings/lua/CMakeLists.txt")
+
+  add_subdirectory("${PROJECT_THIRD_PARTY_INSTALL_DIR}/share/upb/upb/bindings/lua")
+
+  add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/test_pb.upb.h" "${CMAKE_CURRENT_BINARY_DIR}/test_pb.upb.c"
+           "${CMAKE_CURRENT_BINARY_DIR}/test_pb.upbdefs.h" "${CMAKE_CURRENT_BINARY_DIR}/test_pb.upbdefs.c"
+           "${CMAKE_CURRENT_BINARY_DIR}/test_pb.lua"
+    COMMAND
+      "${ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_PROTOBUF_BIN_PROTOC}" --proto_path "${CMAKE_CURRENT_LIST_DIR}"
+      "--plugin=protoc-gen-upb=${ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_PROTOC_GEN_UPB}"
+      "--plugin=protoc-gen-upbdefs=${ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_PROTOC_GEN_UPBDEFS}"
+      "--plugin=protoc-gen-lua=${ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_PROTOC_GEN_LUA}"
+      "--upb_out=${CMAKE_CURRENT_BINARY_DIR}" "--upbdefs_out=${CMAKE_CURRENT_BINARY_DIR}"
+      "--lua_out=${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_LIST_DIR}/test_pb.proto"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${PROJECT_THIRD_PARTY_INSTALL_DIR}/share/upb/upb/bindings/lua/upb.lua" "${CMAKE_CURRENT_BINARY_DIR}"
+    DEPENDS "${CMAKE_CURRENT_LIST_DIR}/test_pb.proto"
+    COMMENT
+      "Generate test_pb.lua,test_pb.upb.h,test_pb.upb.c,test_pb.upbdefs.h,test_pb.upbdefs.c into ${CMAKE_CURRENT_BINARY_DIR}"
+  )
+
+  add_executable(
+    cmake-toolset-upb-and-lua-binding-test
+    "${CMAKE_CURRENT_BINARY_DIR}/test_pb.upb.h" "${CMAKE_CURRENT_BINARY_DIR}/test_pb.upb.c"
+    "${CMAKE_CURRENT_BINARY_DIR}/test_pb.upbdefs.h" "${CMAKE_CURRENT_BINARY_DIR}/test_pb.upbdefs.c"
+    upb-and-lua-binding.cpp)
+
+  target_include_directories("cmake-toolset-upb-and-lua-binding-test" PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+
+  target_link_libraries("cmake-toolset-upb-and-lua-binding-test" ${ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_UPB_LINK_NAME}
+                        upb::lupb ${ATFRAMEWORK_CMAKE_TOOLSET_THIRD_PARTY_LUA_LINK_NAME})
+
+  target_compile_options("cmake-toolset-upb-and-lua-binding-test"
+                         PRIVATE "${PROJECT_BUILD_TOOLS_PATCH_PROTOBUF_SOURCES_OPTIONS}")
 endif()

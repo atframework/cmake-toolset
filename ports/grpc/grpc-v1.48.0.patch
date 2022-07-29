@@ -1,0 +1,13 @@
+diff --git a/third_party/upb/upb/text_encode.c b/third_party/upb/upb/text_encode.c
+index 9612375..76b0bfb 100644
+--- a/third_party/upb/upb/text_encode.c
++++ b/third_party/upb/upb/text_encode.c
+@@ -294,7 +294,7 @@ static void txtenc_map(txtenc* e, const upb_Map* map, const upb_FieldDef* f) {
+ #define CHK(x)      \
+   do {              \
+     if (!(x)) {     \
+-      return false; \
++      return NULL;  \
+     }               \
+   } while (0)
+ 
